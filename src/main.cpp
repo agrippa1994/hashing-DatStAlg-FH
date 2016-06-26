@@ -19,11 +19,11 @@ public:
 
 typedef std::shared_ptr<HashObject> HashObjectPtr;
 
-template<typename T, typename = std::is_arithmetic<T>::type>
+template<typename T>
 class ArithmeticHashObject : public HashObject {
     T val;
 public:
-    ArithmeticHashObject(T val) {
+    ArithmeticHashObject(T val, typename std::enable_if<std::is_arithmetic<T>::value>::type * = nullptr) {
         this->val = val;
     }
 
@@ -70,9 +70,10 @@ public:
         return pos;
     }
 
-    static bool contains(std::array<ChainPtr, S>& arr, HashObjectPtr h) {
-        int pos = h->hashCode() % S;
-
+    static bool contains(std::array<ChainPtr, S>& /* arr */, HashObjectPtr h) {
+        int pos = h->hashCode() % (int)S;
+        pos = 0;
+        if(pos) return false;
         return false;
     }
 
@@ -107,7 +108,7 @@ template<size_t S, template<size_t> class ChainingPolicy>
 std::ostream& operator<<( std::ostream& os, const HashTable<S, ChainingPolicy>& table) {
     auto t = table.getTable();
 
-    for(int i = 0; i < S; i++) {
+    for(int i = 0; i < (int)S; i++) {
         os << "[" << i << "]: { ";
         if(t[i] != nullptr)
             for(auto c : *t[i])
@@ -118,7 +119,7 @@ std::ostream& operator<<( std::ostream& os, const HashTable<S, ChainingPolicy>& 
     return os;
 }
 
-int main(int argc, char *argv[]) {
+int main() {
     HashTable<13, DirectChaining> t;
 
     t.insert(std::make_shared<ArithmeticHashObject<float>>(5.5));
@@ -130,3 +131,4 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
